@@ -1,5 +1,6 @@
 import random
 
+from django.db.models import Count
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
@@ -35,3 +36,17 @@ def random_fact_json(request):
         "fun_fact": fact.funFact,
         "date_added": fact.dateAdded,
     })
+
+
+def facts_chart(request):
+    rows = (
+        PITAirportTrainFact.objects
+        .values("dateAdded")
+        .annotate(count=Count("id"))
+        .order_by("dateAdded")
+    )
+    chart_data = {
+        "labels": [row["dateAdded"].isoformat() for row in rows],
+        "counts": [row["count"] for row in rows],
+    }
+    return render(request, "facts_chart.html", {"chart_data": chart_data})
